@@ -1,0 +1,31 @@
+#! /bin/bash
+
+# Sleeps until the command line time - with nanosecond-ish precision
+# 
+# $ sleepuntil 2017-11-09 17:37:40
+#    Time is now 2017-11-09 15:37:32.740547305
+# Sleeping until 2017-11-09 17:37:40.000000000
+#       Awake at 2017-11-09 17:37:40.007648996
+
+if [ "$1"x = x ] ; then
+	echo Usage: %0 time-to-wake-up
+	exit 1;
+fi
+
+THEN=`date -d "$*" +%s`
+NOW=`date +%s.%N`
+NOW_int=${NOW/.*}
+NOW_frac_plus1=$(( 3000000000 - 2${NOW/*.} ))
+NOW_frac=${NOW_frac_plus1/1}
+sleep $(( $THEN - $NOW_int - 1 )).$NOW_frac 2>/dev/null & 
+if [ $THEN -lt $NOW_int ] ; then
+    echo Already passed
+    exit 1
+fi
+echo "   Time is now `date -d "1 jan 1970 + $NOW seconds" +%Y-%m-%d\ %H:%M:%S.%N`"
+echo "Sleeping until `date -d "$*" +%Y-%m-%d\ %H:%M:%S.%N`"
+wait
+echo "      Awake at `date +%Y-%m-%d\ %H:%M:%S.%N`"
+
+
+
